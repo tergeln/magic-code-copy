@@ -1,4 +1,7 @@
+import { cookies } from "next/headers";
 import { getSiteContent } from "@/lib/magic-api";
+import en from "@/lib/translations/en.json";
+import mn from "@/lib/translations/mn.json";
 import { Button, Icon, sectionX } from "./ui";
 
 const stages = [
@@ -97,7 +100,11 @@ function ModelWorkspace() {
 }
 
 export async function Hero() {
+  const locale = (await cookies()).get("site-language")?.value === "mn" ? "mn" : "en";
+  const translations = { en, mn };
   const { hero } = await getSiteContent();
+  const localizedHero = { ...hero, ...translations[locale].hero };
+
   return (
     <section
       id="top"
@@ -107,27 +114,27 @@ export async function Hero() {
         <div className="flex items-center gap-2.5 rounded-full border border-line-strong bg-white/6 px-3 py-2">
           <Icon name="live-indicator" width={7} />
           <span className="text-caption text-ink-2">
-            {hero.badge}
+            {localizedHero.badge}
           </span>
         </div>
         <h1 className="text-[44px] leading-[0.98] font-medium tracking-[-1.76px] text-ink sm:text-[56px] xl:text-[72px] xl:tracking-[-2.88px]">
-          {hero.title}
+          {localizedHero.title}
         </h1>
         <p className="max-w-[600px] text-body-m text-ink-2">
-          {hero.subtitle}
+          {localizedHero.subtitle}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <Button href="#paths" size="lg">
-            {hero.primaryCta}
+            {localizedHero.primaryCta}
           </Button>
           <Button href="#enroll" size="lg" variant="outline">
-            {hero.secondaryCta}
+            {localizedHero.secondaryCta}
           </Button>
         </div>
         <div className="flex items-center gap-5">
           <Icon name="learner-avatars" width={88} height={28} />
           <span className="text-body-s text-ink-2">
-            {hero.rating}
+            {localizedHero.rating}
           </span>
         </div>
       </div>

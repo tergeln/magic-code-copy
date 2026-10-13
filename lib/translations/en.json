@@ -6,6 +6,11 @@
     "getStarted": "Get started"
   },
   "hero": {
-    "title": "Learn to build AI systems that work in the real world."
+    "badge": "October cohort • applications open",
+    "title": "Learn to build AI systems that work in the real world.",
+    "subtitle": "Master Programming, AI & Core Tech Skills in One Place",
+    "primaryCta": "View learning paths",
+    "secondaryCta": "Download syllabus",
+    "rating": "4.9/5 from 2,400+ learners"
   }
 }

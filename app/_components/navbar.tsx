@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import { useSyncExternalStore } from "react"
 import en from "@/lib/translations/en.json"
 import mn from "@/lib/translations/mn.json"
@@ -30,14 +31,18 @@ function getServerLocale(): Locale {
 }
 
 export function Navbar() {
+  const pathname = usePathname()
+  const router = useRouter()
   const locale = useSyncExternalStore(subscribeToLocale, getSavedLocale, getServerLocale)
 
   const changeLocale = (nextLocale: Locale) => {
     document.cookie = `${languageCookie}=${nextLocale}; path=/; max-age=31536000; samesite=lax`
     window.dispatchEvent(new Event("site-language-change"))
+    if (pathname === "/") router.refresh()
   }
 
-  const content = translations[locale]
+  const isHomePage = pathname === "/"
+  const content = isHomePage ? translations[locale] : en
   const links = [
     { label: content.nav.home, href: "/" },
     { label: content.nav.aboutUs, href: "/about-us" },
