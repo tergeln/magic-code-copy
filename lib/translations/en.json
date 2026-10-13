@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "home": "Home",
+    "aboutUs": "About Us",
+    "courses": "Courses",
+    "getStarted": "Get started"
+  },
+  "hero": {
+    "title": "Learn to build AI systems that work in the real world."
+  }
+}
