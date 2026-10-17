@@ -4,6 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { navLinks } from '../../data/navLinks';
 import Tr from '../Tr/Tr';
 import PouchIcon from './PouchIcon';
+import BrandLogo from '../BrandLogo/BrandLogo';
 
 const hoverCapable = () => window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 
@@ -51,7 +52,7 @@ export default function MainNavbar({ cartCount, onCartClick }) {
     <header onBlur={onBlur}>
       <div className="wrap">
         <a className="brand" href="#home" aria-label="Magic Code AI">
-          <img className="brand-logo" src="/assets/magic-code-logo.png" alt="Magic Code AI" width="332" height="214" />
+          <BrandLogo />
         </a>
         <nav
           id="nav"

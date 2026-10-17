@@ -1,11 +1,64 @@
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import reducedMotion from '../../hooks/reducedMotion';
+import { LOGO_SHAPES } from '../BrandLogo/logoShapes';
 
 // section id -> particle хэлбэрийн индекс
 const SHAPE_BY_SECTION = { home: 0, manifesto: 4, courses: 0, about: 1, activities: 5, method: 3, journey: 2, merch: 4, contact: 5 };
 const X_OFFSET = [2.7, -2.7, 2.5, 0, 2.6, -2.6];
 const OPACITY = [0.95, 0.6, 0.55, 0.5, 0.7, 0.6];
+
+const polyArea = (pts) => {
+  let a = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    const q = pts[(i + 1) % pts.length];
+    a += p[0] * q[1] - q[0] * p[1];
+  }
+  return Math.abs(a) / 2;
+};
+
+const inPoly = (x, y, pts) => {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i];
+    const b = pts[j];
+    if (a[1] > y !== b[1] > y && x < ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside;
+};
+
+// MC логоны контур доторх цэгүүдийг талбайн харьцаагаар тарааж, [x,y,z]-ийн Float32Array буцаана.
+function sampleLogoPoints(n, scale, thickness) {
+  const areas = LOGO_SHAPES.map(polyArea);
+  const total = areas.reduce((s, a) => s + a, 0);
+  const out = new Float32Array(n * 3);
+  let k = 0;
+  LOGO_SHAPES.forEach((pts, si) => {
+    const count = si === LOGO_SHAPES.length - 1 ? n - k : Math.round((areas[si] / total) * n);
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    pts.forEach(([x, y]) => {
+      x0 = Math.min(x0, x);
+      x1 = Math.max(x1, x);
+      y0 = Math.min(y0, y);
+      y1 = Math.max(y1, y);
+    });
+    for (let c = 0; c < count && k < n; ) {
+      const x = x0 + Math.random() * (x1 - x0);
+      const y = y0 + Math.random() * (y1 - y0);
+      if (!inPoly(x, y, pts)) continue;
+      out[k * 3] = x * scale;
+      out[k * 3 + 1] = y * scale;
+      out[k * 3 + 2] = (Math.random() - 0.5) * thickness;
+      k++;
+      c++;
+    }
+  });
+  return out;
+}
 
 // Нэг <canvas id="pg"> үүсгэж, 7000 цэгтэй Three.js particle universe-ийг зурна.
 // Unmount үед animation, listener, observer, geometry, material, renderer болон canvas-ыг бүгдийг цэвэрлэнэ.
@@ -44,12 +97,12 @@ export default function ParticleUniverse({ onResult }) {
     const g0 = Math.ceil(Math.sqrt(N));
     const n3 = Math.round(Math.cbrt(N));
 
+    const logoPts = sampleLogoPoints(N, 1.85, 0.3);
+
     for (let i = 0; i < N; i++) {
       const j = i * 3;
       const f = i / N;
-      const a1 = f * 6.2832;
-      const w1 = (((i * 0.618) % 1) - 0.5) * 1.1;
-      T[0].set([Math.sin(a1) * 3.4 + w1 * Math.cos(a1 / 2) * 0.6, Math.sin(2 * a1) * 1.1 + w1 * Math.sin(a1 / 2), Math.cos(a1) * 1.8], j);
+      T[0].set(logoPts.subarray(j, j + 3), j);
       const u = f * 6.2832;
       const v = i * 2.4;
       const q = 2 + Math.cos(3 * u);
@@ -126,9 +179,15 @@ export default function ParticleUniverse({ onResult }) {
       vel += ((window.scrollY - ly) - vel) * 0.1;
       ly = window.scrollY;
       if (!RM) k += 0.003;
-      points.rotation.y += ((k + mx * 1.2 + vel * 0.02) - points.rotation.y) * 0.05;
-      points.rotation.x += (((ti === 2 || ti === 4) ? 0.9 : my * 0.6) - points.rotation.x) * 0.04;
-      points.position.x += ((M ? 0 : X_OFFSET[ti]) - points.position.x) * 0.04;
+      // Лого (хэлбэр 0) урдаасаа харагдаж, зөвхөн бага зэрэг найгана. Бусад хэлбэр бүтэн эргэнэ.
+      const targetRotY = ti === 0 ? Math.sin(k * 4) * 0.28 + mx * 0.35 : k + mx * 1.2 + vel * 0.02;
+      const targetRotX = ti === 0 ? my * 0.25 : (ti === 2 || ti === 4) ? 0.9 : my * 0.6;
+      points.rotation.y += (targetRotY - points.rotation.y) * 0.05;
+      points.rotation.x += (targetRotX - points.rotation.x) * 0.04;
+      // Лого (хэлбэр 0) нь дэлгэцийн баруун талын хоосон зайн яг төвд (өргөний 75%) байрлана.
+      const rightCenterX = Math.tan((camera.fov * Math.PI) / 360) * 9 * camera.aspect * 0.5;
+      const targetX = ti === 0 ? rightCenterX : X_OFFSET[ti];
+      points.position.x += ((M ? 0 : targetX) - points.position.x) * 0.04;
       points.position.y += ((M ? 2 : 0) - points.position.y) * 0.04;
       material.opacity += ((M ? OPACITY[ti] * 0.55 : OPACITY[ti]) - material.opacity) * 0.05;
       camera.position.z = 9 - Math.min(Math.abs(vel) * 0.05, 2);
