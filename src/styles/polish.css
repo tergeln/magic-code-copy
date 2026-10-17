@@ -1,0 +1,32 @@
+.page-back {
+  display: inline-flex;
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: var(--blue);
+}
+
+.courses-more {
+  margin-top: 36px;
+}
+
+.catalog-card,
+.news-page .impact-card {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.catalog-card:hover,
+.news-page .impact-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px #0f184014;
+}
+
+.story-page .btn {
+  margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-card,
+  .news-page .impact-card {
+    transition: none;
+  }
+}
